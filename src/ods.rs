@@ -138,13 +138,14 @@ pub struct Ods<RS> {
     options: OdsOptions,
 }
 
-impl<RS> Reader<RS> for Ods<RS>
+impl<RS> Reader for Ods<RS>
 where
     RS: Read + Seek,
 {
     type Error = OdsError;
+    type Reader = RS;
 
-    fn new(reader: RS) -> Result<Self, OdsError> {
+    fn new(reader: Self::Reader) -> Result<Self, OdsError> {
         let mut zip = ZipArchive::new(reader)?;
 
         // check mimetype

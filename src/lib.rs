@@ -230,15 +230,16 @@ pub enum HeaderRow {
 // FIXME `Reader` must only be seek `Seek` for `Xls::xls`. Because of the present API this limits
 // the kinds of readers (other) data in formats can be read from.
 /// A trait to share spreadsheets reader functions across different `FileType`s
-pub trait Reader<RS>: Sized
-where
-    RS: Read + Seek,
+pub trait Reader: Sized
 {
     /// Error specific to file type
     type Error: std::fmt::Debug + From<std::io::Error>;
+    
+    /// A readable and seekable type for the data to be read from.
+    type Reader: Read + Seek;
 
     /// Creates a new instance.
-    fn new(reader: RS) -> Result<Self, Self::Error>;
+    fn new(reader: Self::Reader) -> Result<Self, Self::Error>;
 
     /// Set header row (i.e. first row to be read)
     /// If `header_row` is `None`, the first non-empty row will be used as header row
@@ -300,9 +301,7 @@ where
 }
 
 /// A trait to share spreadsheets reader functions across different `FileType`s
-pub trait ReaderRef<RS>: Reader<RS>
-where
-    RS: Read + Seek,
+pub trait ReaderRef<RS>: Reader
 {
     /// Get worksheet range where shared string values are only borrowed.
     ///
@@ -325,7 +324,7 @@ where
 /// Convenient function to open a file with a BufReader<File>
 pub fn open_workbook<R, P>(path: P) -> Result<R, R::Error>
 where
-    R: Reader<BufReader<File>>,
+    R: Reader<Reader = BufReader<File>>,
     P: AsRef<Path>,
 {
     let file = BufReader::new(File::open(path)?);
@@ -336,7 +335,7 @@ where
 pub fn open_workbook_from_rs<R, RS>(rs: RS) -> Result<R, R::Error>
 where
     RS: Read + Seek,
-    R: Reader<RS>,
+    R: Reader<Reader = RS>,
 {
     R::new(rs)
 }

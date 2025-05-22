@@ -453,10 +453,12 @@ impl<RS: Read + Seek> Xlsb<RS> {
     }
 }
 
-impl<RS: Read + Seek> Reader<RS> for Xlsb<RS> {
+impl<RS: Read + Seek> Reader for Xlsb<RS> {
     type Error = XlsbError;
+    
+    type Reader = RS;
 
-    fn new(mut reader: RS) -> Result<Self, XlsbError> {
+    fn new(mut reader: Self::Reader) -> Result<Self, XlsbError> {
         check_for_password_protected(&mut reader)?;
 
         let mut xlsb = Xlsb {

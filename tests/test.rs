@@ -14,7 +14,7 @@ use std::sync::Once;
 static INIT: Once = Once::new();
 
 /// Setup function that is only run once, even if called multiple times.
-fn wb<R: Reader<BufReader<File>>>(name: &str) -> R {
+fn wb<R: Reader<Reader = BufReader<File>>>(name: &str) -> R {
     INIT.call_once(|| {
         env_logger::init();
     });

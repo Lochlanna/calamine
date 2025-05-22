@@ -233,10 +233,11 @@ impl<RS: Read + Seek> Xls<RS> {
     }
 }
 
-impl<RS: Read + Seek> Reader<RS> for Xls<RS> {
+impl<RS: Read + Seek> Reader for Xls<RS> {
     type Error = XlsError;
+    type Reader = RS;
 
-    fn new(reader: RS) -> Result<Self, XlsError> {
+    fn new(reader: Self::Reader) -> Result<Self, XlsError> {
         Self::new_with_options(reader, XlsOptions::default())
     }
 

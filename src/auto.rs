@@ -61,27 +61,29 @@ pub fn open_workbook_auto_from_rs<RS>(data: RS) -> Result<Sheets<RS>, Error>
 where
     RS: std::io::Read + std::io::Seek + Clone,
 {
-    if let Ok(ret) = open_workbook_from_rs::<Xls<RS>, RS>(data.clone()) {
+    if let Ok(ret) = open_workbook_from_rs::<Xls<_>, RS>(data.clone()) {
         Ok(Sheets::Xls(ret))
     } else if let Ok(ret) = open_workbook_from_rs::<Xlsx<RS>, RS>(data.clone()) {
         Ok(Sheets::Xlsx(ret))
     } else if let Ok(ret) = open_workbook_from_rs::<Xlsb<RS>, RS>(data.clone()) {
         Ok(Sheets::Xlsb(ret))
-    } else if let Ok(ret) = open_workbook_from_rs::<Ods<RS>, RS>(data) {
+    } else if let Ok(ret) = open_workbook_from_rs::<Ods<_>, RS>(data) {
         Ok(Sheets::Ods(ret))
     } else {
         Err(Error::Msg("Cannot detect file format"))
     }
 }
 
-impl<RS> Reader<RS> for Sheets<RS>
+impl<RS> Reader for Sheets<RS>
 where
     RS: std::io::Read + std::io::Seek,
 {
     type Error = Error;
 
+    type Reader = RS;
+
     /// Creates a new instance.
-    fn new(_reader: RS) -> Result<Self, Self::Error> {
+    fn new(_reader: Self::Reader) -> Result<Self, Self::Error> {
         Err(Error::Msg("Sheets must be created from a Path"))
     }
 
@@ -161,6 +163,7 @@ where
             Sheets::Ods(ref e) => e.pictures(),
         }
     }
+
 }
 
 impl<RS> ReaderRef<RS> for Sheets<RS>
