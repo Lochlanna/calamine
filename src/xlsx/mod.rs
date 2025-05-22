@@ -18,8 +18,8 @@ use crate::datatype::DataRef;
 use crate::formats::{builtin_format_by_id, detect_custom_number_format, CellFormat};
 use crate::vba::VbaProject;
 use crate::{
-    Cell, CellErrorType, Data, Dimensions, HeaderRow, Metadata, Range, Reader, ReaderRef, Sheet,
-    SheetType, SheetVisible, Table,
+    Cell, CellErrorType, ConstructableReader, Data, Dimensions, HeaderRow, Metadata, Range, Reader,
+    ReaderRef, Sheet, SheetType, SheetVisible, Table,
 };
 pub use cells_reader::XlsxCellReader;
 
@@ -920,12 +920,11 @@ impl<RS: Read + Seek> Xlsx<RS> {
     }
 }
 
-impl<RS: Read + Seek> Reader for Xlsx<RS> {
-    type Error = XlsxError;
-
-    type Reader = RS;
-
-    fn new(mut reader: Self::Reader) -> Result<Self, XlsxError> {
+impl<RS> ConstructableReader<RS> for Xlsx<RS>
+where
+    RS: Read + Seek,
+{
+    fn new(mut reader: RS) -> Result<Self, Self::Error> {
         check_for_password_protected(&mut reader)?;
 
         let mut xlsx = Xlsx {
@@ -950,7 +949,9 @@ impl<RS: Read + Seek> Reader for Xlsx<RS> {
 
         Ok(xlsx)
     }
-
+}
+impl<RS: Read + Seek> Reader for Xlsx<RS> {
+    type Error = XlsxError;
     fn with_header_row(&mut self, header_row: HeaderRow) -> &mut Self {
         self.options.header_row = header_row;
         self

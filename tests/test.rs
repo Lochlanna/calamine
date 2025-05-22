@@ -1,9 +1,5 @@
 use calamine::Data::{Bool, DateTime, DateTimeIso, DurationIso, Empty, Error, Float, Int, String};
-use calamine::{
-    open_workbook, open_workbook_auto, DataRef, DataType, Dimensions, ExcelDateTime,
-    ExcelDateTimeType, HeaderRow, Ods, Range, Reader, ReaderRef, Sheet, SheetType, SheetVisible,
-    Xls, Xlsb, Xlsx,
-};
+use calamine::{open_workbook, open_workbook_auto, ConstructableReader, DataRef, DataType, Dimensions, ExcelDateTime, ExcelDateTimeType, HeaderRow, Ods, Range, Reader, ReaderRef, Sheet, SheetType, SheetVisible, Xls, Xlsb, Xlsx};
 use calamine::{CellErrorType::*, Data};
 use rstest::rstest;
 use std::collections::BTreeSet;
@@ -14,7 +10,7 @@ use std::sync::Once;
 static INIT: Once = Once::new();
 
 /// Setup function that is only run once, even if called multiple times.
-fn wb<R: Reader<Reader = BufReader<File>>>(name: &str) -> R {
+fn wb<R: ConstructableReader<BufReader<File>>>(name: &str) -> R {
     INIT.call_once(|| {
         env_logger::init();
     });

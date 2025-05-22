@@ -230,16 +230,10 @@ pub enum HeaderRow {
 // FIXME `Reader` must only be seek `Seek` for `Xls::xls`. Because of the present API this limits
 // the kinds of readers (other) data in formats can be read from.
 /// A trait to share spreadsheets reader functions across different `FileType`s
-pub trait Reader: Sized
+pub trait Reader
 {
     /// Error specific to file type
     type Error: std::fmt::Debug + From<std::io::Error>;
-    
-    /// A readable and seekable type for the data to be read from.
-    type Reader: Read + Seek;
-
-    /// Creates a new instance.
-    fn new(reader: Self::Reader) -> Result<Self, Self::Error>;
 
     /// Set header row (i.e. first row to be read)
     /// If `header_row` is `None`, the first non-empty row will be used as header row
@@ -300,6 +294,15 @@ pub trait Reader: Sized
     fn pictures(&self) -> Option<Vec<(String, Vec<u8>)>>;
 }
 
+/// A trait to create a new spreadsheet reader from a Read + Seek source
+pub trait ConstructableReader<RS>: Reader + Sized
+where
+    RS: Read + Seek,
+{
+    /// Creates a new spreadsheet reader from the given data source
+    fn new(reader: RS) -> Result<Self, Self::Error>;
+}
+
 /// A trait to share spreadsheets reader functions across different `FileType`s
 pub trait ReaderRef<RS>: Reader
 {
@@ -324,7 +327,7 @@ pub trait ReaderRef<RS>: Reader
 /// Convenient function to open a file with a BufReader<File>
 pub fn open_workbook<R, P>(path: P) -> Result<R, R::Error>
 where
-    R: Reader<Reader = BufReader<File>>,
+    R: ConstructableReader<BufReader<File>>,
     P: AsRef<Path>,
 {
     let file = BufReader::new(File::open(path)?);
@@ -335,7 +338,7 @@ where
 pub fn open_workbook_from_rs<R, RS>(rs: RS) -> Result<R, R::Error>
 where
     RS: Read + Seek,
-    R: Reader<Reader = RS>,
+    R: ConstructableReader<RS>,
 {
     R::new(rs)
 }

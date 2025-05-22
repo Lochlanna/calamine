@@ -16,10 +16,7 @@ use crate::formats::{
 use crate::utils::read_usize;
 use crate::utils::{push_column, read_f64, read_i16, read_i32, read_u16, read_u32};
 use crate::vba::VbaProject;
-use crate::{
-    Cell, CellErrorType, Data, Dimensions, HeaderRow, Metadata, Range, Reader, Sheet, SheetType,
-    SheetVisible,
-};
+use crate::{Cell, CellErrorType, ConstructableReader, Data, Dimensions, HeaderRow, Metadata, Range, Reader, Sheet, SheetType, SheetVisible};
 
 #[derive(Debug)]
 /// An enum to handle Xls specific errors
@@ -233,13 +230,14 @@ impl<RS: Read + Seek> Xls<RS> {
     }
 }
 
-impl<RS: Read + Seek> Reader for Xls<RS> {
-    type Error = XlsError;
-    type Reader = RS;
-
-    fn new(reader: Self::Reader) -> Result<Self, XlsError> {
+impl<RS: Read + Seek> ConstructableReader<RS> for Xls<RS> {
+    fn new(reader: RS) -> Result<Self, Self::Error> {
         Self::new_with_options(reader, XlsOptions::default())
     }
+}
+
+impl<RS: Read + Seek> Reader for Xls<RS> {
+    type Error = XlsError;
 
     fn with_header_row(&mut self, header_row: HeaderRow) -> &mut Self {
         self.options.header_row = header_row;

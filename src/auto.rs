@@ -79,14 +79,7 @@ where
     RS: std::io::Read + std::io::Seek,
 {
     type Error = Error;
-
-    type Reader = RS;
-
-    /// Creates a new instance.
-    fn new(_reader: Self::Reader) -> Result<Self, Self::Error> {
-        Err(Error::Msg("Sheets must be created from a Path"))
-    }
-
+    
     fn with_header_row(&mut self, header_row: HeaderRow) -> &mut Self {
         match self {
             Sheets::Xls(ref mut e) => {

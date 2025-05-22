@@ -21,7 +21,8 @@ use crate::formats::{builtin_format_by_code, detect_custom_number_format, CellFo
 use crate::utils::{push_column, read_f64, read_i32, read_u16, read_u32, read_usize};
 use crate::vba::VbaProject;
 use crate::{
-    Cell, Data, HeaderRow, Metadata, Range, Reader, ReaderRef, Sheet, SheetType, SheetVisible,
+    Cell, ConstructableReader, Data, HeaderRow, Metadata, Range, Reader, ReaderRef, Sheet,
+    SheetType, SheetVisible,
 };
 
 /// A Xlsb specific error
@@ -453,12 +454,11 @@ impl<RS: Read + Seek> Xlsb<RS> {
     }
 }
 
-impl<RS: Read + Seek> Reader for Xlsb<RS> {
-    type Error = XlsbError;
-    
-    type Reader = RS;
-
-    fn new(mut reader: Self::Reader) -> Result<Self, XlsbError> {
+impl<RS> ConstructableReader<RS> for Xlsb<RS>
+where
+    RS: Read + Seek,
+{
+    fn new(mut reader: RS) -> Result<Self, Self::Error> {
         check_for_password_protected(&mut reader)?;
 
         let mut xlsb = Xlsb {
@@ -482,6 +482,10 @@ impl<RS: Read + Seek> Reader for Xlsb<RS> {
 
         Ok(xlsb)
     }
+}
+
+impl<RS: Read + Seek> Reader for Xlsb<RS> {
+    type Error = XlsbError;
 
     fn with_header_row(&mut self, header_row: HeaderRow) -> &mut Self {
         self.options.header_row = header_row;

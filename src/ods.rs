@@ -16,7 +16,10 @@ use zip::read::{ZipArchive, ZipFile};
 use zip::result::ZipError;
 
 use crate::vba::VbaProject;
-use crate::{Data, DataType, HeaderRow, Metadata, Range, Reader, Sheet, SheetType, SheetVisible};
+use crate::{
+    ConstructableReader, Data, DataType, HeaderRow, Metadata, Range, Reader, Sheet, SheetType,
+    SheetVisible,
+};
 use std::marker::PhantomData;
 
 const MIMETYPE: &[u8] = b"application/vnd.oasis.opendocument.spreadsheet";
@@ -138,14 +141,11 @@ pub struct Ods<RS> {
     options: OdsOptions,
 }
 
-impl<RS> Reader for Ods<RS>
+impl<RS> ConstructableReader<RS> for Ods<RS>
 where
     RS: Read + Seek,
 {
-    type Error = OdsError;
-    type Reader = RS;
-
-    fn new(reader: Self::Reader) -> Result<Self, OdsError> {
+    fn new(reader: RS) -> Result<Self, Self::Error> {
         let mut zip = ZipArchive::new(reader)?;
 
         // check mimetype
@@ -185,6 +185,13 @@ where
             options: OdsOptions::default(),
         })
     }
+}
+
+impl<RS> Reader for Ods<RS>
+where
+    RS: Read + Seek,
+{
+    type Error = OdsError;
 
     fn with_header_row(&mut self, header_row: HeaderRow) -> &mut Self {
         self.options.header_row = header_row;

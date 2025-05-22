@@ -1,11 +1,11 @@
 #![cfg_attr(feature = "unstable", feature(test))]
 
-use calamine::{open_workbook, Ods, Reader, Xls, Xlsb, Xlsx};
+use calamine::{open_workbook, ConstructableReader, Ods, Reader, Xls, Xlsb, Xlsx};
 use std::fs::File;
 use std::io::BufReader;
 
 
-fn count<R: Reader<Reader = BufReader<File>>>(path: &str) -> usize {
+fn count<R: ConstructableReader<BufReader<File>>>(path: &str) -> usize {
     let path = format!("{}/{}", env!("CARGO_MANIFEST_DIR"), path);
     let mut excel: R = open_workbook(&path).expect("cannot open excel file");
 
